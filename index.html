@@ -3,385 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulir Pendaftaran Lomba Matematika - MGMP SMP Cilacap</title>
+    <title>Cek Data Nilai Sekolah</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #f3f4f6; }
-        .header-gradient { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
-        .custom-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
-        
-        .form-label {
-            display: block;
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: #1e40af;
-            margin-bottom: 0.5rem;
+        body { font-family: 'Inter', sans-serif; }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 3px solid #fff;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
+        .animate-fade-up {
+            animation: fadeUp 0.5s ease-out forwards;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body class="min-h-screen py-8 px-4">
+<body class="bg-slate-50 min-h-screen p-4 md:p-8">
 
-    <div class="max-w-3xl mx-auto bg-white rounded-2xl overflow-hidden custom-shadow">
-        
-        <!-- Header Banner -->
-        <div class="header-gradient p-8 text-white text-center">
-            <h1 class="text-xl md:text-2xl font-bold uppercase tracking-tight leading-tight">
-                Panitia Lomba Matematika
-            </h1>
-            <h2 class="text-lg md:text-xl font-bold uppercase tracking-wide mt-1">
-                MGMP Matematika SMP Kabupaten Cilacap
-            </h2>
-            <p class="text-yellow-400 font-extrabold tracking-widest mt-2 uppercase text-xl md:text-2xl">
-                Tahun 2026
-            </p>
-            <div class="h-1 w-24 bg-white/40 rounded-full mt-4 mx-auto"></div>
+    <div class="max-w-4xl mx-auto w-full">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800 tracking-tight">Hasil Kompetisi per Sekolah</h1>
+            <p class="text-slate-500 mt-2 text-lg">Cari NPSN untuk menampilkan semua tim dari sekolah Anda</p>
         </div>
 
-        <!-- Info Section -->
-        <div class="p-8 border-b border-gray-100 text-left">
-            <h2 class="text-2xl font-extrabold text-gray-800 mb-4">Formulir Pendaftaran</h2>
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg text-sm text-left">
-                <p class="font-bold text-blue-800 mb-1 text-base">Ketentuan Pendaftaran</p>
-                <ul class="list-disc ml-5 text-gray-700 space-y-2">
-                    <li>Batas akhir pendaftaran: <b>13 Mei 2026</b>.</li>
-                    <li>Pastikan data yang diisi sudah benar dan sesuai dengan rapor/identitas resmi.</li>
-                    <li>Setelah mengirim formulir, silakan bergabung ke grup koordinasi.</li>
-                </ul>
+        <!-- Search Card -->
+        <div class="glass-morphism p-6 rounded-2xl shadow-xl mb-10 sticky top-4 z-10 border-blue-100">
+            <div class="flex flex-col md:flex-row gap-3">
+                <input 
+                    type="text" 
+                    id="npsnInput" 
+                    placeholder="Masukkan 8 Digit NPSN Sekolah..." 
+                    class="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-lg"
+                >
+                <button 
+                    onclick="searchData()" 
+                    id="searchBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-xl font-semibold transition-all flex items-center justify-center shadow-lg shadow-blue-200"
+                >
+                    <span id="btnText">Cari Data</span>
+                    <div id="loader" class="hidden w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin ml-2"></div>
+                </button>
             </div>
+            <p id="errorMsg" class="text-red-500 text-sm mt-3 hidden font-medium"></p>
         </div>
 
-        <!-- Main Form -->
-        <form id="registrationForm" class="p-8 space-y-6 text-left">
-            <div class="grid grid-cols-1 gap-6">
-                
-                <!-- 1. Pilih Komda -->
-                <div>
-                    <label for="komda" class="form-label">Pilih Komda *</label>
-                    <div id="dataLoader" class="text-xs text-blue-600 mb-1 hidden italic">Memuat data wilayah...</div>
-                    <select id="komda" name="komda" required 
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-700 bg-gray-50">
-                        <option value="">-- Pilih Komda --</option>
-                    </select>
-                </div>
+        <!-- School Info Header (Hidden by default) -->
+        <div id="schoolHeader" class="hidden mb-6 px-2">
+            <h2 id="displaySchoolName" class="text-2xl font-bold text-slate-800">Nama Sekolah</h2>
+            <p id="displayNpsn" class="text-slate-500">NPSN: 12345678</p>
+            <div class="h-1 w-20 bg-blue-500 mt-2 rounded-full"></div>
+        </div>
 
-                <!-- 2. Pilih Kecamatan -->
-                <div>
-                    <label for="kecamatan" class="form-label">Pilih Kecamatan *</label>
-                    <select id="kecamatan" name="kecamatan" required disabled
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-700 disabled:bg-gray-100 disabled:text-gray-400">
-                        <option value="">-- Pilih Komda Dahulu --</option>
-                    </select>
-                </div>
+        <!-- Results Container -->
+        <div id="resultsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Team Cards will be injected here -->
+        </div>
 
-                <!-- 3. Nama Sekolah -->
-                <div>
-                    <label for="nama_sekolah" class="form-label">Nama Sekolah *</label>
-                    <select id="nama_sekolah" name="nama_sekolah" required disabled
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-700 disabled:bg-gray-100 disabled:text-gray-400">
-                        <option value="">-- Pilih Kecamatan Dahulu --</option>
-                    </select>
-                </div>
-
-                <!-- Input Nama Sekolah Manual -->
-                <div id="manualSchoolContainer" class="hidden">
-                    <label for="nama_sekolah_manual" class="form-label text-orange-600">Input Nama Sekolah (Manual) *</label>
-                    <input type="text" id="nama_sekolah_manual" name="nama_sekolah_manual" 
-                        class="w-full px-4 py-3 border border-orange-300 bg-orange-50 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                        placeholder="Ketik nama sekolah lengkap">
-                </div>
-
-                <!-- 4. NPSN -->
-                <div>
-                    <label for="npsn" class="form-label">NPSN Sekolah *</label>
-                    <input type="text" id="npsn" name="npsn" required maxlength="8" pattern="\d*"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                        placeholder="8 digit angka NPSN">
-                </div>
-
-                <hr class="border-gray-200">
-
-                <!-- 5. Peserta Lomba 1 -->
-                <div>
-                    <label class="form-label">Peserta Lomba 1 *</label>
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
-                        <div class="md:col-span-3">
-                            <input type="text" name="nama_peserta_1" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                                placeholder="Nama Lengkap">
-                        </div>
-                        <div class="md:col-span-1">
-                            <select name="kelas_peserta_1" required
-                                class="w-full px-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white text-center">
-                                <option value="">Kelas</option>
-                                <option value="7">7</option>
-                                <option value="8">8</option>
-                                <option value="9">9</option>
-                            </select>
-                        </div>
-                        <div class="md:col-span-2">
-                            <input type="text" name="nisn_peserta_1" required 
-                                maxlength="10" minlength="10" pattern="\d{10}"
-                                class="nisn-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                                placeholder="NISN (10 digit)">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 6. Peserta Lomba 2 -->
-                <div>
-                    <label class="form-label">Peserta Lomba 2 *</label>
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
-                        <div class="md:col-span-3">
-                            <input type="text" name="nama_peserta_2" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                                placeholder="Nama Lengkap">
-                        </div>
-                        <div class="md:col-span-1">
-                            <select name="kelas_peserta_2" required
-                                class="w-full px-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white text-center">
-                                <option value="">Kelas</option>
-                                <option value="7">7</option>
-                                <option value="8">8</option>
-                                <option value="9">9</option>
-                            </select>
-                        </div>
-                        <div class="md:col-span-2">
-                            <input type="text" name="nisn_peserta_2" required 
-                                maxlength="10" minlength="10" pattern="\d{10}"
-                                class="nisn-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                                placeholder="NISN (10 digit)">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 7. Peserta Lomba 3 -->
-                <div>
-                    <label class="form-label">Peserta Lomba 3 *</label>
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
-                        <div class="md:col-span-3">
-                            <input type="text" name="nama_peserta_3" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                                placeholder="Nama Lengkap">
-                        </div>
-                        <div class="md:col-span-1">
-                            <select name="kelas_peserta_3" required
-                                class="w-full px-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white text-center">
-                                <option value="">Kelas</option>
-                                <option value="7">7</option>
-                                <option value="8">8</option>
-                                <option value="9">9</option>
-                            </select>
-                        </div>
-                        <div class="md:col-span-2">
-                            <input type="text" name="nisn_peserta_3" required 
-                                maxlength="10" minlength="10" pattern="\d{10}"
-                                class="nisn-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                                placeholder="NISN (10 digit)">
-                        </div>
-                    </div>
-                </div>
-
-                <hr class="border-gray-200">
-
-                <!-- 8. Penanggung Jawab -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="nama_penanggung_jawab" class="form-label">Nama Penanggung Jawab *</label>
-                        <input type="text" id="nama_penanggung_jawab" name="nama_penanggung_jawab" required 
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="Nama Lengkap">
-                    </div>
-                    <div>
-                        <label for="no_hp_penanggung_jawab" class="form-label">No. WA Penanggung Jawab *</label>
-                        <input type="tel" id="no_hp_penanggung_jawab" name="no_hp_penanggung_jawab" required 
-                            minlength="10" maxlength="15"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="Contoh: 08123456789">
-                        <div id="hpError" class="hidden text-[10px] text-red-600 mt-1">Nomor tidak valid (10-15 digit).</div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" id="submitBtn"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg active:scale-[0.98] flex items-center justify-center text-lg">
-                <span id="btnText">Kirim Pendaftaran</span>
-                <div id="btnLoader" class="hidden spinner ml-3"></div>
-            </button>
-        </form>
-
-        <div id="statusMessage" class="hidden mx-8 mb-8 p-4 rounded-xl text-center font-medium"></div>
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center py-20 text-slate-400">
+            <svg class="w-16 h-16 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <p>Belum ada data yang dicari</p>
+        </div>
     </div>
 
-    <footer class="text-center mt-8 text-gray-500 text-xs pb-8">
-        &copy; 2026 Panitia Lomba Matematika MGMP SMP Kabupaten Cilacap
-    </footer>
-
     <script>
-        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTEo8kS2-2Xk65WnbrDOS4uF14t-I3LZ-wORtz4Y8_9sfmuLQW3OnFBxIPBr3EpdYCPCF1tSoF1QBfc/pub?output=csv";
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhw4IHpqJOlfloRdgZCdxSrbYn413Q_NKWX_aluXUgI0l54PdTpqjP3kXpGkvPMWwsuw/exec"; 
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6EvOxmal5IBY2OpmU591kgRKa0x76osoH2QrDK02FWiiUdvy-80BFPcKbmfIvxrJqqAZYNI22_hzG/pub?gid=687792661&single=true&output=csv';
 
-        const form = document.getElementById('registrationForm');
-        const btn = document.getElementById('submitBtn');
-        const btnText = document.getElementById('btnText');
-        const btnLoader = document.getElementById('btnLoader');
-        const statusMsg = document.getElementById('statusMessage');
-        const komdaSelect = document.getElementById('komda');
-        const kecamatanSelect = document.getElementById('kecamatan');
-        const schoolSelect = document.getElementById('nama_sekolah');
-        const manualSchoolContainer = document.getElementById('manualSchoolContainer');
-        const manualSchoolInput = document.getElementById('nama_sekolah_manual');
-        const dataLoader = document.getElementById('dataLoader');
-        const hpInput = document.getElementById('no_hp_penanggung_jawab');
-        const hpError = document.getElementById('hpError');
-        
-        let allSchoolData = [];
+        async function searchData() {
+            const input = document.getElementById('npsnInput').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            const resultsGrid = document.getElementById('resultsGrid');
+            const schoolHeader = document.getElementById('schoolHeader');
+            const emptyState = document.getElementById('emptyState');
+            const loader = document.getElementById('loader');
+            const btnText = document.getElementById('btnText');
 
-        function parseCSVLine(str) {
-            const arr = [];
-            let quote = false;
-            let col = '';
-            for (let i = 0; i < str.length; i++) {
-                let cc = str[i], nc = str[i+1];
-                if (cc === '"' && quote && nc === '"') { col += cc; ++i; continue; }
-                if (cc === '"') { quote = !quote; continue; }
-                if (cc === ',' && !quote) { arr.push(col); col = ''; continue; }
-                col += cc;
+            if (!input) {
+                showError("Silakan masukkan NPSN terlebih dahulu.");
+                return;
             }
-            arr.push(col);
-            return arr;
-        }
 
-        async function fetchData() {
-            dataLoader.classList.remove('hidden');
+            // Loading State
+            errorMsg.classList.add('hidden');
+            loader.classList.remove('hidden');
+            btnText.innerText = "Mencari...";
+            resultsGrid.innerHTML = '';
+            schoolHeader.classList.add('hidden');
+            emptyState.classList.add('hidden');
+
             try {
-                const response = await fetch(CSV_URL);
-                const data = await response.text();
-                const rows = data.split(/\r?\n/).slice(1); 
-                const komdaSet = new Set();
-                rows.forEach(row => {
-                    const cols = parseCSVLine(row);
-                    if (cols.length >= 5) {
-                        const school = cols[0]?.trim();
-                        const kec = cols[3]?.trim();
-                        const komda = cols[4]?.trim();
-                        if (school && kec && komda) {
-                            allSchoolData.push({ school, kecamatan: kec, komda });
-                            komdaSet.add(komda);
+                Papa.parse(CSV_URL, {
+                    download: true,
+                    header: false,
+                    complete: function(results) {
+                        const rows = results.data;
+                        // Filter SEMUA baris yang NPSN-nya cocok (Kolom C / Index 2)
+                        const allTeams = rows.filter(row => row[2] && row[2].trim() === input);
+
+                        if (allTeams.length > 0) {
+                            // Set School Info dari tim pertama
+                            document.getElementById('displaySchoolName').innerText = allTeams[0][1];
+                            document.getElementById('displayNpsn').innerText = `NPSN: ${allTeams[0][2]}`;
+                            schoolHeader.classList.remove('hidden');
+
+                            // Render setiap tim
+                            allTeams.forEach((team, index) => {
+                                renderTeamCard(team, index);
+                            });
+                        } else {
+                            showError("Data tidak ditemukan untuk NPSN tersebut.");
+                            emptyState.classList.remove('hidden');
                         }
+                        
+                        loader.classList.add('hidden');
+                        btnText.innerText = "Cari Data";
+                    },
+                    error: function() {
+                        showError("Gagal mengambil data. Periksa koneksi internet Anda.");
+                        loader.classList.add('hidden');
+                        btnText.innerText = "Cari Data";
                     }
                 });
-                Array.from(komdaSet).sort().forEach(k => komdaSelect.add(new Option(k, k)));
-            } catch (err) { console.error(err); } 
-            finally { dataLoader.classList.add('hidden'); }
+            } catch (e) {
+                showError("Terjadi kesalahan teknis.");
+                loader.classList.add('hidden');
+                btnText.innerText = "Cari Data";
+            }
         }
 
-        fetchData();
+        function renderTeamCard(data, index) {
+            const container = document.getElementById('resultsGrid');
+            const card = document.createElement('div');
+            card.className = "glass-morphism rounded-2xl shadow-lg overflow-hidden border border-slate-100 animate-fade-up";
+            card.style.animationDelay = `${index * 100}ms`;
 
-        komdaSelect.addEventListener('change', () => {
-            const val = komdaSelect.value;
-            kecamatanSelect.innerHTML = '<option value="">-- Pilih Kecamatan --</option>';
-            kecamatanSelect.disabled = !val;
-            schoolSelect.disabled = true;
-            if (val) {
-                const filtered = [...new Set(allSchoolData.filter(d => d.komda === val).map(d => d.kecamatan))].sort();
-                filtered.forEach(k => kecamatanSelect.add(new Option(k, k)));
-            }
-        });
-
-        kecamatanSelect.addEventListener('change', () => {
-            const val = kecamatanSelect.value;
-            schoolSelect.innerHTML = '<option value="">-- Pilih Sekolah --</option>';
-            schoolSelect.disabled = !val;
-            if (val) {
-                allSchoolData.filter(d => d.kecamatan === val).sort((a,b) => a.school.localeCompare(b.school)).forEach(d => {
-                    schoolSelect.add(new Option(d.school, d.school));
-                });
-                schoolSelect.add(new Option("LAINNYA / TIDAK TERDAFTAR", "Lainnya"));
-            }
-        });
-
-        schoolSelect.addEventListener('change', () => {
-            const isManual = schoolSelect.value === 'Lainnya';
-            manualSchoolContainer.classList.toggle('hidden', !isManual);
-            manualSchoolInput.required = isManual;
-        });
-
-        document.addEventListener('input', (e) => {
-            if (e.target.classList.contains('nisn-input')) {
-                e.target.value = e.target.value.replace(/[^0-9]/g, '');
-            }
-            if (e.target.id === 'no_hp_penanggung_jawab') {
-                e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                const invalid = e.target.value.length > 0 && (e.target.value.length < 10 || e.target.value.length > 15);
-                hpError.classList.toggle('hidden', !invalid);
-            }
-        });
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+            // Mapping: A=0 (Rank), B=1 (Nama), C=2 (NPSN), E=4 (Nilai), F=5 (Ang1), G=6 (Ang2), H=7 (Ang3)
+            const html = `
+                <div class="bg-slate-800 p-4 text-white flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Tim #${index + 1}</span>
+                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold">Rank ${data[0] || '-'}</span>
+                </div>
+                <div class="p-6">
+                    <div class="mb-6">
+                        <p class="text-slate-400 text-xs font-bold uppercase mb-1">Total Skor</p>
+                        <p class="text-4xl font-black text-blue-600">${data[4] || '0'}</p>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <p class="text-slate-800 font-bold text-sm flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
+                            Anggota Tim:
+                        </p>
+                        <div class="grid gap-2">
+                            ${data[5] ? `<div class="bg-slate-50 p-2 rounded-lg text-sm text-slate-600 border border-slate-100 flex items-center"><span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>${data[5]}</div>` : ''}
+                            ${data[6] ? `<div class="bg-slate-50 p-2 rounded-lg text-sm text-slate-600 border border-slate-100 flex items-center"><span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>${data[6]}</div>` : ''}
+                            ${data[7] ? `<div class="bg-slate-50 p-2 rounded-lg text-sm text-slate-600 border border-slate-100 flex items-center"><span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>${data[7]}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
             
-            const nisnInputs = document.querySelectorAll('.nisn-input');
-            for (let input of nisnInputs) {
-                if (input.value.length !== 10) {
-                    input.focus();
-                    showStatus("⚠️ Mohon pastikan semua NISN berjumlah 10 digit.", "bg-orange-100 text-orange-700");
-                    return;
-                }
-            }
+            card.innerHTML = html;
+            container.appendChild(card);
+        }
 
-            setLoading(true);
+        function showError(msg) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.innerText = msg;
+            errorMsg.classList.remove('hidden');
+        }
 
-            const finalSchool = schoolSelect.value === 'Lainnya' ? manualSchoolInput.value : schoolSelect.value;
-            const formData = new FormData(form);
-            const dataObj = Object.fromEntries(formData.entries());
-            dataObj.nama_sekolah = finalSchool;
-
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify(dataObj)
-                });
-
-                form.reset();
-                komdaSelect.dispatchEvent(new Event('change'));
-                
-                showStatus(`✅ Pendaftaran diterima!<br>Silakan gabung ke <a href="https://chat.whatsapp.com/J04RjarNYZMIvEsbAbjWKr" class="underline font-bold text-red-600 hover:text-red-700">Grup WhatsApp</a>`, "bg-green-600 text-white");
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            } catch (err) {
-                showStatus("❌ Gagal mengirim data. Silakan coba lagi.", "bg-red-100 text-red-700");
-            } finally {
-                setLoading(false);
+        document.getElementById("npsnInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                searchData();
             }
         });
-
-        function setLoading(isLoading) {
-            btn.disabled = isLoading;
-            btnText.textContent = isLoading ? "Mengirim..." : "Kirim Pendaftaran";
-            btnLoader.classList.toggle('hidden', !isLoading);
-        }
-
-        function showStatus(msg, classes) {
-            statusMsg.innerHTML = msg;
-            statusMsg.className = `mx-8 mb-8 p-4 rounded-xl text-center font-medium ${classes}`;
-            statusMsg.classList.remove('hidden');
-        }
     </script>
 </body>
 </html>
